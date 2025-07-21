@@ -1,7 +1,4 @@
-use solana_program::{
-    decode_error::DecodeError,
-    program_error::ProgramError,
-};
+use solana_program::{decode_error::DecodeError, program_error::ProgramError};
 use thiserror::Error;
 
 /// Errores personalizados del Secure Vault
@@ -150,6 +147,49 @@ pub enum VaultError {
 
     #[error("Invalid emergency operation")]
     InvalidEmergencyOperation,
+
+    //  ERRORES ESPECÍFICOS PARA PDAs
+    #[error("Invalid seeds provided for PDA generation")]
+    InvalidSeeds,
+
+    #[error("PDA address mismatch - expected different address")]
+    PDAAddressMismatch,
+
+    #[error("Incorrect program ID for PDA")]
+    IncorrectProgramId,
+
+    #[error("Invalid bump seed for PDA")]
+    InvalidBumpSeed,
+
+    #[error("PDA creation failed")]
+    PDACreationFailed,
+
+    #[error("PDA validation failed")]
+    PDAValidationFailed,
+
+    #[error("Seeds exceed maximum length")]
+    SeedsExceedMaxLength,
+
+    #[error("Too many seeds provided for PDA")]
+    TooManySeeds,
+
+    #[error("Empty seeds array provided")]
+    EmptySeeds,
+
+    #[error("PDA not found on curve - invalid bump")]
+    PDANotFoundOnCurve,
+
+    #[error("PDA account space insufficient")]
+    PDASpaceInsufficient,
+
+    #[error("PDA account already exists")]
+    PDAAlreadyExists,
+
+    #[error("PDA derivation failed")]
+    PDADerivationFailed,
+
+    #[error("Invalid PDA signer")]
+    InvalidPDASigner,
 }
 
 impl From<VaultError> for ProgramError {
@@ -172,8 +212,23 @@ impl VaultError {
 
     /// Obtener descripción detallada del error
     pub fn detailed_description(&self) -> &'static str {
-        // TODO: Implementar descripciones detalladas
-        todo!()
+        match self {
+            VaultError::InvalidInstruction => "La instruccion dada no es reconocida",
+            VaultError::VaultPaused => "El vault esta pausado y no puede procesar transacciones",
+            VaultError::InsufficientBalance => {
+                "El vault no tiene suficiente balance para realizar la operacion"
+            }
+            VaultError::Unauthorized => {
+                "Esta account no tiene permiso para realizar esta operacion"
+            }
+            VaultError::InvalidAccount => "La account dada no es validad para esta operacion",
+            VaultError::AccountAlreadyInitialized => "La account ya a sido inicializada",
+            VaultError::AccountNotInitialized => "La account no ha sido inicializada",
+
+            // Errores del sistema de PDA
+            //TODO
+            _ => "Error ocurrido",
+        }
     }
 
     /// Verificar si el error es recuperable
@@ -184,14 +239,31 @@ impl VaultError {
 
     /// Obtener nivel de severidad del error
     pub fn severity_level(&self) -> ErrorSeverity {
-        // TODO: Implementar
-        todo!()
+        match self {
+            VaultError::SuspiciousActivity
+            | VaultError::PriceManipulation
+            | VaultError::EmergencyModeActive => ErrorSeverity::Critical,
+
+            VaultError::Unauthorized
+            | VaultError::InvalidAccount
+            | VaultError::PDAValidationFailed
+            | VaultError::IncorrectProgramId
+            | VaultError::InvalidPDASigner => ErrorSeverity::High,
+
+            _ => ErrorSeverity::Low,
+        }
     }
 
     /// Verificar si el error requiere notificación de emergencia
     pub fn requires_emergency_notification(&self) -> bool {
-        // TODO: Implementar
-        todo!()
+        match self {
+            VaultError::SuspiciousActivity
+            | VaultError::PriceManipulation
+            | VaultError::EmergencyModeActive
+            | VaultError::Unauthorized => true,
+
+            _ => false,
+        }
     }
 }
 
@@ -216,25 +288,29 @@ pub struct ErrorContext {
 impl ErrorContext {
     /// Crear nuevo contexto de error
     pub fn new() -> Self {
-        // TODO: Implementar
-        todo!()
+        Self {
+            operation_id: None,
+            account_key: None,
+            timestamp: 0,
+            additional_info: None,
+        }
     }
 
     /// Agregar información de operación
     pub fn with_operation_id(mut self, operation_id: u64) -> Self {
-        // TODO: Implementar
-        todo!()
+        self.operation_id = Some(operation_id);
+        self
     }
 
     /// Agregar información de cuenta
     pub fn with_account_key(mut self, account_key: String) -> Self {
-        // TODO: Implementar
-        todo!()
+        self.account_key = Some(account_key);
+        self
     }
 
     /// Agregar información adicional
     pub fn with_additional_info(mut self, info: String) -> Self {
-        // TODO: Implementar
-        todo!()
+        self.additional_info = Some(info);
+        self
     }
-} 
+}
